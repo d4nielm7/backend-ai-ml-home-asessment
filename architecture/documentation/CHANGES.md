@@ -168,31 +168,25 @@ Two PlantUML diagrams are available in the `architecture/diagrams/` folder:
 
 ## Testing
 
-### Task 1: Cache Statistics
+For detailed step-by-step testing instructions, see [TESTING.md](./TESTING.md).
+
+Quick test commands:
+
+**Task 1: Cache Statistics**
 ```bash
 curl http://localhost:3000/api/cache/stats
 ```
 
-### Task 2: Model Selection
+**Task 2: Model Selection**
 ```bash
-# With model parameter
 curl -X POST http://localhost:3000/api/ai/chat \
   -H "Content-Type: application/json" \
   -d '{"messages":[{"role":"user","content":"Hello"}],"model":"gpt-4"}'
-
-# Without model parameter (defaults to gpt-3.5-turbo)
-curl -X POST http://localhost:3000/api/ai/chat \
-  -H "Content-Type: application/json" \
-  -d '{"messages":[{"role":"user","content":"Hello"}]}'
 ```
 
-### Task 3: Request ID Tracking
+**Task 3: Request ID Tracking**
 ```bash
-# Check response headers for X-Request-ID
 curl -i http://localhost:3000/health
-
-# Check logs for request ID in log messages
-# Logs will show: [INFO] [request-id] GET /health 200 - 5ms
 ```
 
 ---
