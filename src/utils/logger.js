@@ -1,19 +1,23 @@
 class Logger {
   constructor() {
-    this.isDevelopment = process.env.NODE_ENV === 'development';
+    this.isDevelopment = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
   }
 
   formatMessage(level, message, ...args) {
     const timestamp = new Date().toISOString();
-    const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
+    const requestId = this.extractRequestId(args);
+    const filteredArgs = this.filterRequestId(args);
     
-    if (args.length === 0) {
+    const requestIdStr = requestId ? `[${requestId.substring(0, 8)}]` : '';
+    const prefix = `[${timestamp}] [${level.toUpperCase()}]${requestIdStr ? ' ' + requestIdStr : ''}`;
+    
+    if (filteredArgs.length === 0) {
       return `${prefix} ${message}`;
     }
     
     if (this.isDevelopment || level === 'error') {
       try {
-        const argsStr = args.map(arg => 
+        const argsStr = filteredArgs.map(arg => 
           arg instanceof Error ? { message: arg.message, stack: arg.stack } : arg
         );
         return `${prefix} ${message} ${JSON.stringify(argsStr)}`;
@@ -25,6 +29,25 @@ class Logger {
     return `${prefix} ${message}`;
   }
 
+  extractRequestId(args) {
+    for (const arg of args) {
+      if (arg && typeof arg === 'object' && 'requestId' in arg) {
+        return arg.requestId;
+      }
+    }
+    return null;
+  }
+
+  filterRequestId(args) {
+    return args.filter(arg => {
+      if (arg && typeof arg === 'object' && 'requestId' in arg) {
+        const { requestId: _, ...rest } = arg;
+        return Object.keys(rest).length > 0 ? rest : null;
+      }
+      return arg;
+    }).filter(Boolean);
+  }
+
   debug(message, ...args) {
     if (this.isDevelopment) {
       console.debug(this.formatMessage('debug', message, ...args));
@@ -32,7 +55,7 @@ class Logger {
   }
 
   info(message, ...args) {
-    console.info(this.formatMessage('info', message, ...args));
+    console.log(this.formatMessage('info', message, ...args));
   }
 
   warn(message, ...args) {

@@ -1,0 +1,62 @@
+@startuml Changes Overview
+!theme plain
+skinparam backgroundColor #FFFFFF
+
+title Backend Enhancement Assessment - Changes Overview
+
+package "Task 1: Cache Statistics" {
+  component CacheService
+  component CacheController
+  component CacheRoutes
+  
+  CacheRoutes --> CacheController
+  CacheController --> CacheService
+}
+
+package "Task 2: Model Selection" {
+  component AIController
+  component AIService
+  component OpenAIService
+  component AI_MODELS
+  
+  AIController --> AI_MODELS
+  AIController --> AIService
+  AIService --> OpenAIService
+  OpenAIService --> AI_MODELS
+}
+
+package "Task 3: Request ID Tracking" {
+  component RequestIdMiddleware
+  component RequestLogger
+  component Logger
+  
+  RequestIdMiddleware --> RequestLogger
+  RequestLogger --> Logger
+}
+
+package "Main Application" {
+  component IndexJS as "index.js"
+  component Routes
+  
+  IndexJS --> RequestIdMiddleware
+  IndexJS --> Routes
+  Routes --> CacheRoutes
+  Routes --> AIController
+}
+
+note right of CacheService
+  Added hits/misses tracking
+  Added getStats() method
+end note
+
+note right of OpenAIService
+  Dynamic model parameter
+  Removed hardcoded model
+end note
+
+note right of RequestIdMiddleware
+  Generates UUID
+  Sets X-Request-ID header
+end note
+
+@enduml

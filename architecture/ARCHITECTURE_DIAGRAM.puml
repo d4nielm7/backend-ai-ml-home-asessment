@@ -1,0 +1,60 @@
+@startuml Architecture Flow
+!theme plain
+skinparam backgroundColor #FFFFFF
+
+title Request Flow
+
+actor User
+participant "Express App" as App
+participant "RequestIdMiddleware" as ReqId
+participant "RequestLogger" as ReqLog
+participant "Routes" as Routes
+participant "CacheController" as CacheCtrl
+participant "AIController" as AICtrl
+participant "CacheService" as CacheSvc
+participant "AIService" as AISvc
+participant "OpenAIService" as OpenAI
+
+== Request Processing ==
+User -> App: HTTP Request
+App -> ReqId: Generate UUID
+activate ReqId
+ReqId -> App: Set req.requestId & X-Request-ID header
+deactivate ReqId
+
+App -> ReqLog: Log request with request ID
+activate ReqLog
+deactivate ReqLog
+
+== Cache Statistics Endpoint ==
+alt GET /api/cache/stats
+  App -> Routes: Route request
+  Routes -> CacheCtrl: getStats()
+  CacheCtrl -> CacheSvc: getStats()
+  CacheSvc --> CacheCtrl: Return stats
+  CacheCtrl --> App: JSON response
+end
+
+== AI Chat Endpoint ==
+alt POST /api/ai/chat
+  App -> Routes: Route request
+  Routes -> AICtrl: chat()
+  AICtrl -> AICtrl: Validate model
+  alt Valid model
+    AICtrl -> AISvc: chatCompletion(model)
+    AISvc -> OpenAI: API call with model
+    OpenAI --> AISvc: Response
+    AISvc --> AICtrl: Response
+    AICtrl --> App: Success
+  else Invalid model
+    AICtrl --> App: Error 400
+  end
+end
+
+== Response ==
+App -> ReqLog: Log response with request ID
+activate ReqLog
+deactivate ReqLog
+App --> User: HTTP Response with X-Request-ID header
+
+@enduml

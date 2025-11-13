@@ -3,6 +3,7 @@ import cors from 'cors';
 import { config } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { requestIdMiddleware } from './middleware/requestId.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { rateLimitMiddleware } from './middleware/rateLimiter.js';
 import apiRoutes from './routes/index.js';
@@ -16,7 +17,7 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Middleware
+app.use(requestIdMiddleware);
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true,
