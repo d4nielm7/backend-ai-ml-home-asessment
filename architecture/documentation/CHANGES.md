@@ -159,7 +159,7 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000
 
 ## Architecture Diagrams
 
-Two PlantUML diagrams are available in the `architecture/` folder:
+Two PlantUML diagrams are available in the `architecture/diagrams/` folder:
 
 1. **CHANGES_DIAGRAM.puml** - Component diagram showing the structure and relationships of all changes
 2. **ARCHITECTURE_DIAGRAM.puml** - Sequence diagram showing the request flow with all enhancements
