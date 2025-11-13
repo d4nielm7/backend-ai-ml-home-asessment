@@ -32,3 +32,7 @@ export const CACHE_TTL = {
   LONG: 30 * 60 * 1000, // 30 minutes
 };
 
+export const CACHE_CONFIG = {
+  CLEANUP_INTERVAL_MS: 60 * 1000, // 1 minute
+};
+

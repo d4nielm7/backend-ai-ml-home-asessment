@@ -1,8 +1,10 @@
+import { CACHE_TTL, CACHE_CONFIG } from '../constants/index.js';
+
 class CacheService {
   constructor() {
     this.cache = new Map();
-    this.defaultTTL = 5 * 60 * 1000;
-    this.cleanupInterval = setInterval(() => this.cleanup(), 60000);
+    this.defaultTTL = CACHE_TTL.DEFAULT;
+    this.cleanupInterval = setInterval(() => this.cleanup(), CACHE_CONFIG.CLEANUP_INTERVAL_MS);
     this.hits = 0;
     this.misses = 0;
   }

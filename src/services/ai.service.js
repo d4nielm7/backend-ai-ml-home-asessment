@@ -2,7 +2,7 @@ import { config } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 import { cacheService } from './cache.service.js';
 import { hash } from '../utils/encryption.js';
-import { AI_MODELS } from '../constants/index.js';
+import { AI_MODELS, CACHE_TTL } from '../constants/index.js';
 
 const POSITIVE_WORDS = new Set(['love', 'great', 'excellent', 'amazing', 'wonderful', 'good', 'happy', 'pleased', 'fantastic', 'awesome', 'brilliant', 'perfect']);
 const NEGATIVE_WORDS = new Set(['hate', 'terrible', 'awful', 'bad', 'sad', 'angry', 'disappointed', 'horrible', 'worst', 'hateful', 'disgusting']);
@@ -167,27 +167,41 @@ class AIService {
     }
   }
 
-  async chatCompletion(messages, model) {
+  _generateCacheKey(prefix, model, data) {
     const modelForCache = model || 'default';
-    const cacheKey = `chat:${modelForCache}:${hash(JSON.stringify(messages))}`;
+    const dataHash = typeof data === 'string' ? data : JSON.stringify(data);
+    return `${prefix}:${modelForCache}:${hash(dataHash)}`;
+  }
+
+  async _getCachedOrExecute(cacheKey, executor, fallbackExecutor, ttl = CACHE_TTL.DEFAULT) {
     const cached = cacheService.get(cacheKey);
     if (cached) {
       return cached;
     }
 
     try {
-      const result = await this.service.chatCompletion(messages, model);
-      cacheService.set(cacheKey, result, 5 * 60 * 1000);
+      const result = await executor();
+      cacheService.set(cacheKey, result, ttl);
       return result;
     } catch (error) {
-      if (this.useOpenAI) {
+      if (this.useOpenAI && fallbackExecutor) {
         logger.warn('OpenAI request failed, falling back to mock service', error);
-        const result = await this.mockFallback.chatCompletion(messages, model);
-        cacheService.set(cacheKey, result, 5 * 60 * 1000);
-        return result;
+        const fallbackResult = await fallbackExecutor();
+        cacheService.set(cacheKey, fallbackResult, ttl);
+        return fallbackResult;
       }
       throw error;
     }
+  }
+
+  async chatCompletion(messages, model) {
+    const cacheKey = this._generateCacheKey('chat', model, messages);
+    return this._getCachedOrExecute(
+      cacheKey,
+      () => this.service.chatCompletion(messages, model),
+      () => this.mockFallback.chatCompletion(messages, model),
+      CACHE_TTL.DEFAULT
+    );
   }
 
   async generateText(prompt, systemPrompt, model) {
@@ -196,46 +210,24 @@ class AIService {
       messages.push({ role: 'system', content: systemPrompt });
     }
     messages.push({ role: 'user', content: prompt });
-    const modelForCache = model || 'default';
-    const cacheKey = `chat:${modelForCache}:${hash(JSON.stringify(messages))}`;
-    const cached = cacheService.get(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      const result = await this.service.generateText(prompt, systemPrompt, model);
-      cacheService.set(cacheKey, result, 5 * 60 * 1000);
-      return result;
-    } catch (error) {
-      if (this.useOpenAI) {
-        logger.warn('OpenAI request failed, falling back to mock service', error);
-        const result = await this.mockFallback.generateText(prompt, systemPrompt, model);
-        cacheService.set(cacheKey, result, 5 * 60 * 1000);
-        return result;
-      }
-      throw error;
-    }
+    
+    const cacheKey = this._generateCacheKey('chat', model, messages);
+    return this._getCachedOrExecute(
+      cacheKey,
+      () => this.service.generateText(prompt, systemPrompt, model),
+      () => this.mockFallback.generateText(prompt, systemPrompt, model),
+      CACHE_TTL.DEFAULT
+    );
   }
 
   async analyzeSentiment(text) {
     const cacheKey = `sentiment:${hash(text)}`;
-    const cached = cacheService.get(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      const result = await this.service.analyzeSentiment(text);
-      cacheService.set(cacheKey, result, 10 * 60 * 1000);
-      return result;
-    } catch (error) {
-      if (this.useOpenAI) {
-        logger.warn('OpenAI request failed, falling back to mock service', error);
-        return this.mockFallback.analyzeSentiment(text);
-      }
-      throw error;
-    }
+    return this._getCachedOrExecute(
+      cacheKey,
+      () => this.service.analyzeSentiment(text),
+      () => this.mockFallback.analyzeSentiment(text),
+      CACHE_TTL.LONG
+    );
   }
 
   async summarizeText(text, maxLength) {

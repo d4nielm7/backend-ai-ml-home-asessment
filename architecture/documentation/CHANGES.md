@@ -191,6 +191,44 @@ curl -i http://localhost:3000/health
 
 ---
 
+## Code Quality & Architecture Improvements
+
+### Description
+Refactored codebase to improve maintainability, reduce duplication, and follow clean architecture principles.
+
+### Changes Made
+
+#### Modified Files
+- `src/services/ai.service.js`
+  - **Extracted cache key generation**: Created `_generateCacheKey()` helper method to centralize cache key logic
+  - **Reduced code duplication**: Created `_getCachedOrExecute()` method to unify caching, execution, and fallback logic
+  - **Consistent error handling**: Unified fallback pattern across all AI service methods
+  - **Constants usage**: Replaced magic numbers (e.g., `5 * 60 * 1000`) with `CACHE_TTL` constants
+  - **Improved maintainability**: All caching logic now follows DRY (Don't Repeat Yourself) principles
+
+- `src/services/cache.service.js`
+  - **Constants usage**: Replaced hardcoded TTL value (`5 * 60 * 1000`) with `CACHE_TTL.DEFAULT`
+  - **Configuration centralization**: Cleanup interval now uses `CACHE_CONFIG.CLEANUP_INTERVAL_MS` constant
+
+- `src/constants/index.js`
+  - **Added `CACHE_CONFIG`**: New constant object for cache-related configuration
+    - `CLEANUP_INTERVAL_MS`: Centralized cleanup interval configuration (60 seconds)
+
+### Benefits
+- **Reduced duplication**: Eliminated repeated cache/error handling code across multiple methods
+- **Better maintainability**: Changes to caching logic only need to be made in one place
+- **Improved readability**: Helper methods make the code self-documenting
+- **Easier extensibility**: New AI methods can follow the same pattern with minimal code
+- **Centralized configuration**: All magic numbers replaced with named constants
+
+### Architecture Principles Applied
+- ✅ **DRY (Don't Repeat Yourself)**: Common patterns extracted into reusable methods
+- ✅ **Single Responsibility**: Each method has a clear, focused purpose
+- ✅ **Separation of Concerns**: Cache logic separated from business logic
+- ✅ **Constants over Magic Numbers**: All configuration values centralized
+
+---
+
 ## Summary
 
 All three tasks have been successfully implemented with:
@@ -199,4 +237,5 @@ All three tasks have been successfully implemented with:
 - ✅ Integration with existing middleware and services
 - ✅ Comprehensive logging with request IDs
 - ✅ Backward compatibility (optional parameters, sensible defaults)
+- ✅ **Refactored architecture** with reduced duplication and improved maintainability
 
