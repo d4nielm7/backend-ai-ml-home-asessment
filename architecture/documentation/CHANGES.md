@@ -229,6 +229,78 @@ Refactored codebase to improve maintainability, reduce duplication, and follow c
 
 ---
 
+## Validation Error Formatting Fix
+
+### Description
+Fixed validation error responses to match the expected standard format with proper error details structure.
+
+### Changes Made
+
+#### Modified Files
+- `src/utils/validation.js`
+  - Updated `validate()` function to transform Zod errors into the expected format
+  - Changed error message from `'Validation failed'` to `'Validation error'` to match standard
+  - Added error transformation to map Zod errors to `{ path, message }` format
+  - Each validation error now includes:
+    - `path`: Array of field paths (e.g., `["model"]`)
+    - `message`: Human-readable error message
+
+- `src/middleware/errorHandler.js`
+  - Added `ValidationError` import to properly handle validation errors
+  - Enhanced error handler to detect `ValidationError` instances with `details`
+  - Added special handling for validation errors to include `details` array in response
+  - Validation errors now return proper format:
+    ```json
+    {
+      "success": false,
+      "error": "Validation error",
+      "details": [
+        {
+          "path": ["model"],
+          "message": "Invalid enum value. Expected 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4-turbo-preview', received 'invalid-model'"
+        }
+      ],
+      "timestamp": "2025-11-13T12:22:47.677Z"
+    }
+    ```
+
+### Benefits
+- ✅ **Standard Compliance**: Error responses now match the expected format from TESTING.md
+- ✅ **Better Error Details**: Clients receive structured error information with field paths
+- ✅ **Consistent Format**: All validation errors follow the same structure
+- ✅ **Improved Debugging**: Field paths help identify exactly which fields failed validation
+
+### Example Error Response
+```json
+{
+  "success": false,
+  "error": "Validation error",
+  "details": [
+    {
+      "path": ["model"],
+      "message": "Invalid enum value. Expected 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4-turbo-preview', received 'invalid-model'"
+    }
+  ],
+  "timestamp": "2025-11-13T12:22:47.677Z"
+}
+```
+
+---
+
+## Documentation Updates
+
+### Modified Files
+- `README.md`
+  - Updated project structure section to include all new files:
+    - Added `constants/` directory
+    - Added `cache.controller.js` to controllers
+    - Added `requestId.js` to middleware
+    - Added `cache.routes.js` to routes
+    - Added `scripts/` directory
+    - Added `architecture/` directory structure
+
+---
+
 ## Summary
 
 All three tasks have been successfully implemented with:
@@ -238,4 +310,5 @@ All three tasks have been successfully implemented with:
 - ✅ Comprehensive logging with request IDs
 - ✅ Backward compatibility (optional parameters, sensible defaults)
 - ✅ **Refactored architecture** with reduced duplication and improved maintainability
+- ✅ **Standard-compliant error formatting** with proper validation error details
 

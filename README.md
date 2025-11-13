@@ -110,30 +110,45 @@ backend-ai/
 ├── src/
 │   ├── config/
 │   │   └── env.js          # Environment configuration
+│   ├── constants/
+│   │   └── index.js        # Application constants (models, cache TTL, etc.)
 │   ├── controllers/
 │   │   ├── ai.controller.js
+│   │   ├── cache.controller.js
 │   │   └── user.controller.js
 │   ├── middleware/
+│   │   ├── asyncHandler.js
+│   │   ├── auth.js
 │   │   ├── errorHandler.js
 │   │   ├── rateLimiter.js
+│   │   ├── requestId.js
 │   │   ├── requestLogger.js
 │   │   └── validator.js
 │   ├── models/
 │   │   └── User.model.js
 │   ├── routes/
 │   │   ├── ai.routes.js
+│   │   ├── cache.routes.js
 │   │   ├── user.routes.js
 │   │   └── index.js
+│   ├── scripts/
+│   │   ├── health-check.js
+│   │   └── seed.js
 │   ├── services/
 │   │   ├── ai.service.js
-│   │   └── cache.service.js
+│   │   ├── cache.service.js
+│   │   └── index.js
 │   ├── utils/
+│   │   ├── encryption.js
 │   │   ├── errors.js
 │   │   ├── logger.js
 │   │   ├── rateLimiter.js
 │   │   ├── response.js
 │   │   └── validation.js
 │   └── index.js            # Application entry point
+├── architecture/
+│   ├── diagrams/           # Architecture diagrams
+│   └── documentation/     # Technical documentation
 ├── package.json
 └── README.md
 ```

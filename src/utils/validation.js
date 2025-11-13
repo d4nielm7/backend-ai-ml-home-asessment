@@ -6,7 +6,11 @@ export function validate(schema, data) {
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new ValidationError('Validation failed', error.errors);
+      const details = error.errors.map(err => ({
+        path: err.path,
+        message: err.message,
+      }));
+      throw new ValidationError('Validation error', details);
     }
     throw error;
   }
